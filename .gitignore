@@ -1,0 +1,6 @@
+/.env
+/storage/app.sqlite
+/.idea/
+/.venv/
+__pycache__/
+*.pyc

@@ -1,0 +1,5 @@
+[
+  { "sku": "CAB-1", "name": "USB-C cable 1 m", "unit_cents": 2000 },
+  { "sku": "CAB-2", "name": "USB-C cable 2 m", "unit_cents": 3000 },
+  { "sku": "HUB-1", "name": "USB hub", "unit_cents": 5000 }
+]

@@ -1,0 +1,90 @@
+[
+  {
+    "case": "R1 normal order",
+    "request_id": "R1",
+    "order_ref": "O1",
+    "expected_status": "draft",
+    "expected_total_cents": 4000,
+    "verified_by": "hand calc: CAB-1 unit 2000 cents x 2 = 4000, qty < 10 so no discount"
+  },
+  {
+    "case": "R2 unknown product",
+    "request_id": "R2",
+    "order_ref": "O2",
+    "expected_status": "needs_clarification",
+    "expected_total_cents": null,
+    "verified_by": "domain.md rule 3: 'Moon adapter' matches nothing in the 3-item catalog"
+  },
+  {
+    "case": "R3 ambiguous product + ambiguous quantity",
+    "request_id": "R3",
+    "order_ref": "O3",
+    "expected_status": "needs_clarification",
+    "expected_total_cents": null,
+    "verified_by": "domain.md rule 1+3: 'the usual cable' matches both CAB-1 and CAB-2 (no length marker), and 'boxes' has no stated item count"
+  },
+  {
+    "case": "R4 duplicate of R1 (same order_ref O1)",
+    "request_id": "R4",
+    "order_ref": "O1",
+    "expected_status": "duplicate",
+    "expected_total_cents": null,
+    "verified_by": "domain.md rule 4: same order_ref as R1, must not create a second draft or inflate the new-order count"
+  },
+  {
+    "case": "R5 bulk discount (qty >= 10)",
+    "request_id": "R5",
+    "order_ref": "O4",
+    "expected_status": "draft",
+    "expected_total_cents": 18000,
+    "verified_by": "hand calc: CAB-1 unit 2000 x 10 = 20000 subtotal; 10% discount = 2000; total = 20000 - 2000 = 18000"
+  },
+  {
+    "case": "R6 multi-line order (two different SKUs, no discount)",
+    "request_id": "R6",
+    "order_ref": "O5",
+    "expected_status": "draft",
+    "expected_total_cents": 14000,
+    "verified_by": "hand calc: CAB-2 3 x 3000 = 9000 (qty<10, no discount) + HUB-1 1 x 5000 = 5000; total = 14000"
+  },
+  {
+    "case": "R7 product matched via description, not SKU",
+    "request_id": "R7",
+    "order_ref": "O6",
+    "expected_status": "draft",
+    "expected_total_cents": 6000,
+    "verified_by": "hand calc: '2 meter USB-C cable' unambiguously resolves to CAB-2 (3000 cents) x 2 = 6000, no discount"
+  },
+  {
+    "case": "R8 product resolved, quantity ambiguous (box, no count)",
+    "request_id": "R8",
+    "order_ref": "O7",
+    "expected_status": "needs_clarification",
+    "expected_total_cents": null,
+    "verified_by": "domain.md rule 1: 'a box of USB hubs' resolves product (HUB-1, 'hub' is unique) but box size must not be inferred, so quantity is unresolved"
+  },
+  {
+    "case": "R9 unknown product (no catalog match)",
+    "request_id": "R9",
+    "order_ref": "O8",
+    "expected_status": "needs_clarification",
+    "expected_total_cents": null,
+    "verified_by": "domain.md rule 3: 'wireless mice' has no resemblance to any of the 3 catalog items"
+  },
+  {
+    "case": "R10 bulk discount (second, independent catalog item)",
+    "request_id": "R10",
+    "order_ref": "O9",
+    "expected_status": "draft",
+    "expected_total_cents": 32400,
+    "verified_by": "hand calc: CAB-2 unit 3000 x 12 = 36000 subtotal; 10% discount = 3600; total = 36000 - 3600 = 32400"
+  },
+  {
+    "case": "Reviewer correction on O10 (R11): quantity 12 -> 15 (still >= 10, discount recalculated)",
+    "order_ref": "O10",
+    "correction": { "line_index": 0, "field": "quantity", "new_value": "15" },
+    "expected_status": "draft",
+    "expected_total_cents": 27000,
+    "verified_by": "O10/R11 ('Please send 12 CAB-1 cables...') is deliberately NOT asserted as its own standalone case -- it exists only to host this correction, so this is its single, final-state assertion and reruns of this script stay stable forever. Pre-correction (uncorrected) hand calc: CAB-1 unit 2000 x 12 = 24000 subtotal, 10% discount 2400, total 21600. Post-correction hand calc: unit 2000 x 15 = 30000 subtotal, 10% discount 3000, total 30000 - 3000 = 27000. Must remain visible after an app restart."
+  }
+]
