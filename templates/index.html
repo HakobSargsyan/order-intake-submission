@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Order intake &mdash; operations queue</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+  <h1>Order intake &mdash; operations queue</h1>
+
+  <div class="stats-bar">
+    <div class="stat-card"><div class="value">{{ stats.by_status.get('draft', 0) }}</div><div class="label">Ready for review</div></div>
+    <div class="stat-card"><div class="value">{{ stats.by_status.get('needs_clarification', 0) }}</div><div class="label">Needs clarification</div></div>
+    <div class="stat-card"><div class="value">{{ stats.duplicates }}</div><div class="label">Duplicates (excluded)</div></div>
+    <div class="stat-card"><div class="value">{{ stats.errors }}</div><div class="label">Failed to process</div></div>
+  </div>
+
+  {% if stats.exception_reasons %}
+  <div class="panel">
+    <h3>Main exception reasons</h3>
+    <ul>
+      {% for reason, count in stats.exception_reasons.items() %}
+        <li>{{ reason }}: {{ count }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <div class="panel">
+    <h3>Process improvement observed from this batch</h3>
+    <p>Most unresolved requests cite a product by loose description ("the usual cable", "a box of hubs")
+    instead of a SKU or an exact size/count. A one-line reply template asking the customer for the SKU
+    (printed on past invoices) and an individual-item count would likely resolve the majority of
+    clarifications in one round-trip, without any change to the matching logic.</p>
+  </div>
+
+  <div class="filters">
+    <a href="{{ url_for('index', status='all') }}" class="{{ 'active' if filter == 'all' else '' }}">All</a>
+    <a href="{{ url_for('index', status='draft') }}" class="{{ 'active' if filter == 'draft' else '' }}">Draft / ready</a>
+    <a href="{{ url_for('index', status='needs_clarification') }}" class="{{ 'active' if filter == 'needs_clarification' else '' }}">Needs clarification</a>
+  </div>
+
+  <table>
+    <thead>
+      <tr><th>Order</th><th>Status</th><th>Review state</th><th>Total</th><th>Source request</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for order in orders %}
+        <tr>
+          <td>{{ order.order_ref }}</td>
+          <td><span class="badge {{ order.status }}">{{ order.status }}</span></td>
+          <td>
+            {% if corrections_count.get(order.order_ref, 0) > 0 %}
+              <span class="badge reviewed">reviewer-confirmed</span>
+            {% else %}
+              <span class="badge unreviewed">auto-draft, unreviewed</span>
+            {% endif %}
+          </td>
+          <td>{{ order.total_cents | money }}</td>
+          <td>{{ order.source_request_id }}</td>
+          <td><a href="{{ url_for('order_detail', order_ref=order.order_ref) }}">Open</a></td>
+        </tr>
+      {% else %}
+        <tr><td colspan="6">No orders yet &mdash; run <code>python bin/process.py</code> first.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+</body>
+</html>

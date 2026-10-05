@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Order {{ order_ref }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="{{ url_for('index') }}">&larr; Back to queue</a>
+  <h1>Order {{ order_ref }}</h1>
+
+  {% if error %}
+    <div class="panel" style="border-color:#b42318;color:#b42318;">{{ error }}</div>
+  {% endif %}
+
+  {% if not order %}
+    <div class="panel">No such order.</div>
+  {% else %}
+
+    <div class="panel">
+      <span class="badge {{ order.status }}">{{ order.status }}</span>
+      &nbsp; Total: <strong>{{ order.total_cents | money }}</strong>
+      &nbsp; Source request: {{ order.source_request_id }}
+      &nbsp; Extraction: {{ order.extraction_mode }} / {{ order.extraction_model }}
+    </div>
+
+    <div class="two-col">
+      <div class="panel">
+        <h3>Original request</h3>
+        <pre class="raw">{{ request_row.raw_text if request_row else '' }}</pre>
+      </div>
+
+      <div class="panel">
+        <h3>Proposed order lines</h3>
+        {% for line in order.lines %}
+          <div class="line-row">
+            <div><strong>Excerpt:</strong> &ldquo;{{ line.raw_excerpt }}&rdquo;</div>
+            <div>
+              <strong>Product:</strong>
+              {{ line.sku or '(unresolved)' }}
+              <span style="color:#888">[{{ line.product_match_status }}{% if line.candidates %} &mdash; candidates: {{ line.candidates | join(', ') }}{% endif %}]</span>
+            </div>
+            <div>
+              <strong>Quantity:</strong>
+              {{ line.quantity if line.quantity is not none else '(unresolved)' }}
+              <span style="color:#888">[{{ line.quantity_status }}]</span>
+              {% if line.quantity_reason %}
+                <div class="reasons">{{ line.quantity_reason }}</div>
+              {% endif %}
+            </div>
+            {% if line.line_total_cents is not none %}
+              <div>
+                <strong>Line total:</strong> {{ line.line_total_cents | money }}
+                (unit {{ line.unit_cents | money }}, subtotal {{ line.subtotal_cents | money }}, discount {{ line.discount_cents | money }})
+              </div>
+            {% endif %}
+
+            <form class="correction" method="post" action="{{ url_for('order_detail', order_ref=order_ref) }}">
+              <input type="hidden" name="action" value="correct">
+              <input type="hidden" name="line_index" value="{{ loop.index0 }}">
+              <select name="field">
+                <option value="quantity">Correct quantity</option>
+                <option value="sku">Correct SKU</option>
+              </select>
+              <input type="text" name="new_value" placeholder="new value (e.g. 15 or CAB-2)" required>
+              <button type="submit">Apply correction</button>
+            </form>
+          </div>
+        {% endfor %}
+
+        {% if order.reasons %}
+          <h4>Unresolved reasons</h4>
+          <ul class="reasons">
+            {% for r in order.reasons %}<li>{{ r }}</li>{% endfor %}
+          </ul>
+        {% endif %}
+
+        {% if order.clarification_draft %}
+          <h4>Drafted clarification message</h4>
+          <pre class="raw">{{ order.clarification_draft }}</pre>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if corrections %}
+      <div class="panel history">
+        <h3>Model proposal vs. reviewer correction</h3>
+        <table>
+          <thead>
+            <tr><th>When</th><th>Line</th><th>Field</th><th>Was</th><th>Corrected to</th><th>Order status</th><th>Order total</th></tr>
+          </thead>
+          <tbody>
+            {% for c in corrections %}
+              {% set reval = c.revalidation_json | from_json %}
+              <tr>
+                <td>{{ c.corrected_at }}</td>
+                <td>{{ c.line_index + 1 }}</td>
+                <td>{{ c.field }}</td>
+                <td>{{ c.old_value }}</td>
+                <td><strong>{{ c.new_value }}</strong></td>
+                <td>
+                  {{ reval.get('previous_status', '?') }}
+                  &rarr; <span class="badge {{ reval.get('status', '') }}">{{ reval.get('status', '?') }}</span>
+                </td>
+                <td>
+                  {{ reval.get('previous_total_cents') | money }}
+                  &rarr; <strong>{{ reval.get('total_cents') | money }}</strong>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endif %}
+
+  {% endif %}
+</div>
+</body>
+</html>
