@@ -1,0 +1,77 @@
+{
+  "template": false,
+  "instructions": "Completed for the Order Intake (Alternative A) submission.",
+  "categories": {
+    "development_tools_and_models": {
+      "status": "used",
+      "files": ["ai-workflow/README.md#tools-and-models"],
+      "notes": "Claude Code (claude.ai/code desktop app) running model id claude-sonnet-5, used interactively to write essentially all of orderintake/, bin/, app.py, templates/, and this documentation. The implementation was first built and fully verified in PHP, then ported to this Python/Flask stack -- see the worked example for the bugs found at each stage, including one genuinely new bug the Python/Flask port itself surfaced."
+    },
+    "plugins_and_extensions": {
+      "status": "not-used",
+      "files": [],
+      "notes": "No Claude Code plugins or editor extensions beyond the default desktop app were used for this exercise."
+    },
+    "application_models_and_parameters": {
+      "status": "used",
+      "files": ["orderintake/claude_client.py", "orderintake/extractor.py"],
+      "notes": "The APPLICATION itself (not the dev tool) calls Anthropic model claude-haiku-4-5-20251001 (configurable via CLAUDE_MODEL in .env) via the official `anthropic` Python SDK (client.messages.create), max_tokens=1024, temperature left at the API default (unset). System prompt is the SYSTEM_PROMPT constant in orderintake/extractor.py. Haiku was chosen over Sonnet after estimating cost for this narrow segmentation task -- see README.md."
+    },
+    "skills": {
+      "status": "not-used",
+      "files": [],
+      "notes": "The starter pack's skills/generate-assignment-data/SKILL.md was read for guidance but not installed/invoked as a Claude Code skill -- the 7 added request files (R5-R11) were handwritten directly against domain.md instead."
+    },
+    "agent_instructions_and_subagents": {
+      "status": "not-used",
+      "files": [],
+      "notes": "No project-specific CLAUDE.md, subagents, or custom agent instructions were created for this standalone repo; default Claude Code behavior was used throughout."
+    },
+    "hooks_and_scripts": {
+      "status": "not-used",
+      "files": [],
+      "notes": "No Claude Code hooks (PreToolUse/PostToolUse/etc.) were configured for this exercise."
+    },
+    "prompts_and_rules": {
+      "status": "used",
+      "files": ["orderintake/extractor.py#SYSTEM_PROMPT"],
+      "notes": "The only durable prompt artifact is the application's own extraction system prompt, committed in source. No separate Claude Code rule/instruction files were authored for this repo."
+    },
+    "tool_and_mcp_settings": {
+      "status": "default",
+      "files": [],
+      "notes": "Default Claude Code tool permissions (Read/Write/Edit/Bash) in the desktop app's standard permission-prompt mode; no custom MCP servers were added or needed for this exercise."
+    },
+    "permissions_and_environment_names": {
+      "status": "used",
+      "files": [".env.example"],
+      "notes": "Only ANTHROPIC_API_KEY and CLAUDE_MODEL are read by the application (orderintake/env.py). No credentials are committed; .env and .venv/ are gitignored."
+    }
+  },
+  "configuration_records": [
+    {
+      "name": "Claude Code desktop session",
+      "category": "development_tools_and_models",
+      "purpose": "Generated and iteratively debugged the full application (PHP, then ported to Python/Flask) and documentation",
+      "original_path_or_scope": "n/a (interactive session, not a repo file)",
+      "saved_path": "ai-workflow/README.md#one-workflow-example",
+      "version_or_commit": "model id claude-sonnet-5",
+      "used_during": "entire build",
+      "status": "used",
+      "redactions": []
+    },
+    {
+      "name": "Order-extraction system prompt",
+      "category": "application_models_and_parameters",
+      "purpose": "Instructs the configured model to segment request text into product excerpts + quantity reading only, never to pick SKUs/prices",
+      "original_path_or_scope": "orderintake/extractor.py",
+      "saved_path": "orderintake/extractor.py",
+      "version_or_commit": "committed in this repo",
+      "used_during": "bin/process.py runtime calls",
+      "status": "used",
+      "redactions": []
+    }
+  ],
+  "replay_command": "python bin/process.py && python bin/check.py",
+  "workflow_example_path": "ai-workflow/README.md#one-workflow-example"
+}
