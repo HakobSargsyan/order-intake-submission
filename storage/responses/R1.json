@@ -1,0 +1,38 @@
+{
+  "mode": "real",
+  "model": "claude-haiku-4-5-20251001",
+  "created_at": "2026-10-05T20:41:16.927881+00:00",
+  "text": "```json\n{\"lines\": [{\"raw_excerpt\": \"2 individual CAB-1 cables\", \"quantity_value\": 2, \"quantity_ambiguous\": false, \"quantity_notes\": null}]}\n```",
+  "raw_response": {
+    "id": "msg_011Cfjjmk1nC3QyE7h4TwKqG",
+    "container": null,
+    "content": [
+      {
+        "citations": null,
+        "text": "```json\n{\"lines\": [{\"raw_excerpt\": \"2 individual CAB-1 cables\", \"quantity_value\": 2, \"quantity_ambiguous\": false, \"quantity_notes\": null}]}\n```",
+        "type": "text"
+      }
+    ],
+    "diagnostics": null,
+    "model": "claude-haiku-4-5-20251001",
+    "role": "assistant",
+    "stop_details": null,
+    "stop_reason": "end_turn",
+    "stop_sequence": null,
+    "type": "message",
+    "usage": {
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "inference_geo": "not_available",
+      "input_tokens": 294,
+      "output_tokens": 52,
+      "output_tokens_details": null,
+      "server_tool_use": null,
+      "service_tier": "standard"
+    }
+  }
+}
