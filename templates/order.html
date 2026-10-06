@@ -1,17 +1,13 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>Order {{ order_ref }}</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-<div class="container">
+{% extends "base.html" %}
+{% block title %}Order {{ order_ref }}{% endblock %}
+{% block crumb %}Order {{ order_ref }}{% endblock %}
+
+{% block content %}
   <a class="back-link" href="{{ url_for('index') }}">&larr; Back to queue</a>
-  <h1>Order {{ order_ref }}</h1>
+  <h1 class="page-title">Order {{ order_ref }}</h1>
 
   {% if error %}
-    <div class="panel" style="border-color:#b42318;color:#b42318;">{{ error }}</div>
+    <div class="panel callout-error">{{ error }}</div>
   {% endif %}
 
   {% if not order %}
@@ -19,10 +15,12 @@
   {% else %}
 
     <div class="panel">
-      <span class="badge {{ order.status }}">{{ order.status }}</span>
-      &nbsp; Total: <strong>{{ order.total_cents | money }}</strong>
-      &nbsp; Source request: {{ order.source_request_id }}
-      &nbsp; Extraction: {{ order.extraction_mode }} / {{ order.extraction_model }}
+      <div class="summary-bar">
+        <span class="badge {{ order.status }}">{{ order.status }}</span>
+        <span class="total">Total: <strong>{{ order.total_cents | money }}</strong></span>
+        <span class="meta">Source request: {{ order.source_request_id }}</span>
+        <span class="meta">Extraction: {{ order.extraction_mode }} / {{ order.extraction_model }}</span>
+      </div>
     </div>
 
     <div class="two-col">
@@ -34,31 +32,43 @@
       <div class="panel">
         <h3>Proposed order lines</h3>
         {% for line in order.lines %}
-          <div class="line-row">
-            <div><strong>Excerpt:</strong> &ldquo;{{ line.raw_excerpt }}&rdquo;</div>
-            <div>
-              <strong>Product:</strong>
-              {{ line.sku or '(unresolved)' }}
-              <span style="color:#888">[{{ line.product_match_status }}]</span>
+          {% set line_ok = line.product_match_status == 'matched' and line.quantity_status == 'resolved' %}
+          <div class="line-row {{ '' if line_ok else 'flagged' }}">
+            <div class="field">
+              <span class="field-label">Excerpt</span>
+              <span>&ldquo;{{ line.raw_excerpt }}&rdquo;</span>
+            </div>
+            <div class="field">
+              <span class="field-label">Product</span>
+              <span>
+                {% if line.sku %}<strong>{{ line.sku }}</strong>{% else %}<span class="unresolved-value">unresolved</span>{% endif %}
+                <span class="status-tag">[{{ line.product_match_status }}]</span>
+              </span>
               {% if line.candidate_entries %}
-                <div class="reasons">
-                  Catalog entries considered:
-                  {% for e in line.candidate_entries %}{{ e.sku }} ({{ e.name }}, {{ e.unit_cents | money }}){% if not loop.last %}, {% endif %}{% endfor %}
+                <div class="chip-row">
+                  {% for e in line.candidate_entries %}
+                    <span class="chip">{{ e.sku }} &middot; {{ e.name }} &middot; {{ e.unit_cents | money }}</span>
+                  {% endfor %}
                 </div>
               {% endif %}
             </div>
-            <div>
-              <strong>Quantity:</strong>
-              {{ line.quantity if line.quantity is not none else '(unresolved)' }}
-              <span style="color:#888">[{{ line.quantity_status }}]</span>
+            <div class="field">
+              <span class="field-label">Quantity</span>
+              <span>
+                {% if line.quantity is not none %}<strong>{{ line.quantity }}</strong>{% else %}<span class="unresolved-value">unresolved</span>{% endif %}
+                <span class="status-tag">[{{ line.quantity_status }}]</span>
+              </span>
               {% if line.quantity_reason %}
-                <div class="reasons">{{ line.quantity_reason }}</div>
+                <div class="reason-note">{{ line.quantity_reason }}</div>
               {% endif %}
             </div>
             {% if line.line_total_cents is not none %}
-              <div>
-                <strong>Line total:</strong> {{ line.line_total_cents | money }}
-                (unit {{ line.unit_cents | money }}, subtotal {{ line.subtotal_cents | money }}, discount {{ line.discount_cents | money }})
+              <div class="field">
+                <span class="field-label">Line total</span>
+                <span class="line-total">
+                  <strong>{{ line.line_total_cents | money }}</strong>
+                  (unit {{ line.unit_cents | money }}, subtotal {{ line.subtotal_cents | money }}, discount {{ line.discount_cents | money }})
+                </span>
               </div>
             {% endif %}
 
@@ -76,15 +86,19 @@
         {% endfor %}
 
         {% if order.reasons %}
-          <h4>Unresolved reasons</h4>
-          <ul class="reasons">
-            {% for r in order.reasons %}<li>{{ r }}</li>{% endfor %}
-          </ul>
+          <div class="callout amber">
+            <h4>Unresolved reasons</h4>
+            <ul>
+              {% for r in order.reasons %}<li>{{ r }}</li>{% endfor %}
+            </ul>
+          </div>
         {% endif %}
 
         {% if order.clarification_draft %}
-          <h4>Drafted clarification message</h4>
-          <pre class="raw">{{ order.clarification_draft }}</pre>
+          <div class="callout gray">
+            <h4>Drafted clarification message</h4>
+            <pre class="raw">{{ order.clarification_draft }}</pre>
+          </div>
         {% endif %}
       </div>
     </div>
@@ -121,6 +135,4 @@
     {% endif %}
 
   {% endif %}
-</div>
-</body>
-</html>
+{% endblock %}

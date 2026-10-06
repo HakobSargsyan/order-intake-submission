@@ -5,3 +5,7 @@
 /.venv/
 __pycache__/
 *.pyc
+
+# Delivered separately, not part of the repo
+/PRESENTATION.pptx
+.~lock.*#

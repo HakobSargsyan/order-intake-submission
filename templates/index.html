@@ -1,19 +1,16 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>Order intake &mdash; operations queue</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-<div class="container">
-  <h1>Order intake &mdash; operations queue</h1>
+{% extends "base.html" %}
+{% block title %}Order intake &mdash; operations queue{% endblock %}
+{% block crumb %}Operations queue{% endblock %}
+
+{% block content %}
+  <h1 class="page-title">Operations queue</h1>
+  <p class="page-subtitle">Every request processed, with what's ready, what needs a human, and why.</p>
 
   <div class="stats-bar">
-    <div class="stat-card"><div class="value">{{ stats.by_status.get('draft', 0) }}</div><div class="label">Ready for review</div></div>
-    <div class="stat-card"><div class="value">{{ stats.by_status.get('needs_clarification', 0) }}</div><div class="label">Needs clarification</div></div>
-    <div class="stat-card"><div class="value">{{ stats.duplicates }}</div><div class="label">Duplicates (excluded)</div></div>
-    <div class="stat-card"><div class="value">{{ stats.errors }}</div><div class="label">Failed to process</div></div>
+    <div class="stat-card ready"><div class="value">{{ stats.by_status.get('draft', 0) }}</div><div class="label">Ready for review</div></div>
+    <div class="stat-card clarify"><div class="value">{{ stats.by_status.get('needs_clarification', 0) }}</div><div class="label">Needs clarification</div></div>
+    <div class="stat-card dup"><div class="value">{{ stats.duplicates }}</div><div class="label">Duplicates (excluded)</div></div>
+    <div class="stat-card failed"><div class="value">{{ stats.errors }}</div><div class="label">Failed to process</div></div>
   </div>
 
   {% if stats.exception_reasons %}
@@ -21,7 +18,7 @@
     <h3>Main exception reasons</h3>
     <ul>
       {% for reason, count in stats.exception_reasons.items() %}
-        <li>{{ reason }}: {{ count }}</li>
+        <li>{{ reason }}: <strong>{{ count }}</strong></li>
       {% endfor %}
     </ul>
   </div>
@@ -35,25 +32,29 @@
     clarifications in one round-trip, without any change to the matching logic.</p>
   </div>
 
-  <div class="filters">
-    <a href="{{ url_for('index', status='all') }}" class="{{ 'active' if filter == 'all' else '' }}">All</a>
-    <a href="{{ url_for('index', status='draft') }}" class="{{ 'active' if filter == 'draft' else '' }}">Draft / ready</a>
-    <a href="{{ url_for('index', status='needs_clarification') }}" class="{{ 'active' if filter == 'needs_clarification' else '' }}">Needs clarification</a>
-    <span style="margin-left:16px;color:#888">
+  <div class="toolbar">
+    <div class="filters">
+      <a href="{{ url_for('index', status='all') }}" class="{{ 'active' if filter == 'all' else '' }}">All</a>
+      <a href="{{ url_for('index', status='draft') }}" class="{{ 'active' if filter == 'draft' else '' }}">Draft / ready</a>
+      <a href="{{ url_for('index', status='needs_clarification') }}" class="{{ 'active' if filter == 'needs_clarification' else '' }}">Needs clarification</a>
+    </div>
+    <div class="export-links">
       Export: <a href="{{ url_for('export') }}">CSV</a>
       &middot; <a href="{{ url_for('export', format='json') }}">JSON</a>
       &middot; <a href="{{ url_for('export', reviewed_only='1') }}">CSV (reviewed only)</a>
-    </span>
+    </div>
   </div>
 
   <table>
     <thead>
-      <tr><th>Order</th><th>Status</th><th>Review state</th><th>Total</th><th>Source request</th><th></th></tr>
+      <tr>
+        <th>Order</th><th>Status</th><th>Review state</th><th class="col-total">Total</th><th>Source request</th><th></th>
+      </tr>
     </thead>
     <tbody>
       {% for order in orders %}
         <tr>
-          <td>{{ order.order_ref }}</td>
+          <td><strong>{{ order.order_ref }}</strong></td>
           <td><span class="badge {{ order.status }}">{{ order.status }}</span></td>
           <td>
             {% if corrections_count.get(order.order_ref, 0) > 0 %}
@@ -62,15 +63,13 @@
               <span class="badge unreviewed">auto-draft, unreviewed</span>
             {% endif %}
           </td>
-          <td>{{ order.total_cents | money }}</td>
+          <td class="col-total">{{ order.total_cents | money }}</td>
           <td>{{ order.source_request_id }}</td>
-          <td><a href="{{ url_for('order_detail', order_ref=order.order_ref) }}">Open</a></td>
+          <td class="col-open"><a class="btn-link" href="{{ url_for('order_detail', order_ref=order.order_ref) }}">Open</a></td>
         </tr>
       {% else %}
         <tr><td colspan="6">No orders yet &mdash; run <code>python bin/process.py</code> first.</td></tr>
       {% endfor %}
     </tbody>
   </table>
-</div>
-</body>
-</html>
+{% endblock %}
