@@ -121,6 +121,16 @@ anything. All of that is deterministic Python:
 This keeps every priced/validated number traceable to code you can read in
 five minutes, and the model's output is always checked rather than trusted.
 
+Every proposed line also carries `raw_excerpt` (the verbatim source text
+that produced it) and `candidate_entries` (the full catalog rows --
+SKU, name, unit price -- behind every SKU `Catalog.match()` considered,
+not just the final `sku` string). For an ambiguous match this is every
+candidate it couldn't choose between; for a resolved match it's the one
+entry that backs it. Both are persisted on the order and shown on the
+order detail page, so a reviewer (or an audit of the database) never has
+to cross-reference `catalog.json` by hand to see what a match was based
+on or weighed against.
+
 ### Duplicate handling
 
 Per `domain.md` rule 4, dedup key is `order_ref`, checked **before** any

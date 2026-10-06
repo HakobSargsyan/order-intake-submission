@@ -77,9 +77,6 @@ class OrderProcessor:
         all_resolved = True
         total = 0
 
-        #[{'raw_excerpt': '12 CAB-2 cables', 'quantity_value': 12, 'quantity_ambiguous': False, 'quantity_notes': None}]
-        #print("12345", extracted_lines)
-
         for i, line in enumerate(extracted_lines):
             match = self._catalog.match(line["raw_excerpt"])
             quantity = self._resolve_quantity(line)
@@ -89,6 +86,7 @@ class OrderProcessor:
                 "product_match_status": match.status,
                 "sku": match.sku,
                 "candidates": match.candidates,
+                "candidate_entries": self._candidate_entries(match.candidates),
                 "quantity": quantity["quantity"],
                 "quantity_status": quantity["status"],
                 "quantity_reason": quantity["reason"],
@@ -120,6 +118,18 @@ class OrderProcessor:
             lines.append(line_result)
 
         return lines, reasons, all_resolved, total
+
+    def _candidate_entries(self, skus: list[str]) -> list[dict]:
+        """Full catalog entries (name + unit price) backing each candidate
+        SKU, not just the SKU code -- so a reviewer (or an audit of the
+        persisted order) can see exactly which catalog rows support or
+        were considered for a proposed product, even when the match is
+        ambiguous or unknown."""
+        entries = [self._catalog.find(sku) for sku in skus]
+        return [
+            {"sku": e.sku, "name": e.name, "unit_cents": e.unit_cents}
+            for e in entries if e is not None
+        ]
 
     def _resolve_quantity(self, line: dict) -> dict:
         """Cross-checks the model's quantity_value against an independent
@@ -180,6 +190,7 @@ class OrderProcessor:
             lines[line_index]["sku"] = new_value
             lines[line_index]["product_match_status"] = "matched"
             lines[line_index]["candidates"] = [new_value]
+            lines[line_index]["candidate_entries"] = self._candidate_entries([new_value])
         else:
             raise RuntimeError(f"unsupported correction field '{field}'")
 
