@@ -77,6 +77,9 @@ class OrderProcessor:
         all_resolved = True
         total = 0
 
+        #[{'raw_excerpt': '12 CAB-2 cables', 'quantity_value': 12, 'quantity_ambiguous': False, 'quantity_notes': None}]
+        #print("12345", extracted_lines)
+
         for i, line in enumerate(extracted_lines):
             match = self._catalog.match(line["raw_excerpt"])
             quantity = self._resolve_quantity(line)
