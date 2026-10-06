@@ -94,5 +94,12 @@
     "expected_status": "draft",
     "expected_total_cents": 25000,
     "verified_by": "domain.md rule 1 says 'do not infer how many items a box contains', but does not address a count stated EXPLICITLY alongside the container word -- '5' here is stated, not inferred, so it must resolve rather than be flagged ambiguous. Hand calc: HUB-1 unit 5000 x 5 = 25000, qty < 10 so no discount. Confirmed against a real claude-haiku-4-5-20251001 response (storage/responses/R12.json, quantity_value=5, quantity_ambiguous=false)."
+  },
+  {
+    "case": "R13 simulated model-call failure",
+    "request_id": "R13",
+    "order_ref": "O12",
+    "expected_status": "failed",
+    "verified_by": "DELIBERATE SIMULATION, not a real app bug: storage/responses/R13.json is intentionally invalid JSON, labeled as such in the file itself, so ClaudeClient.complete() raises json.JSONDecodeError on every run regardless of ANTHROPIC_API_KEY. OrderProcessor.process()'s broad except catches it, calls Storage.record_error(), and returns status=\"failed\" WITHOUT creating an orders row (a failure never produces a draft). Verified by source inspection of order_processor.py's except-block, not by running the app first -- the app's own classification of this outcome is what is being checked, so it cannot be its own answer key."
   }
 ]

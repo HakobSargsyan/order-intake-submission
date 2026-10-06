@@ -59,12 +59,25 @@ def main() -> int:
                 )
         else:
             order = storage.get_order(case["order_ref"])
-            if order is None and case["expected_status"] != "duplicate":
+            if order is None and case["expected_status"] not in ("duplicate", "failed"):
                 rows.append((case["case"], "FAIL", "order not found - run bin/process.py first"))
                 failed += 1
                 continue
 
         mode = order.get("extraction_mode", "?") if order else "?"
+
+        if case.get("expected_status") == "failed":
+            unresolved = storage.list_unresolved_errors()
+            found = any(e["request_id"] == case["request_id"] for e in unresolved)
+            ok = found and order is None
+            detail = (
+                "error recorded, no order row created (simulated failure)" if ok
+                else f"expected an unresolved error for {case['request_id']} and no order row -- got found={found}, order={'exists' if order else 'none'}"
+            )
+            rows.append((case["case"], "PASS" if ok else "FAIL", detail))
+            passed += ok
+            failed += not ok
+            continue
 
         if case.get("expected_status") == "duplicate":
             duplicates = storage.list_duplicates()

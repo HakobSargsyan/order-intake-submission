@@ -45,7 +45,7 @@
     "permissions_and_environment_names": {
       "status": "used",
       "files": [".env.example"],
-      "notes": "Only ANTHROPIC_API_KEY and CLAUDE_MODEL are read by the application (orderintake/env.py). No credentials are committed; .env and .venv/ are gitignored."
+      "notes": "ANTHROPIC_API_KEY, CLAUDE_MODEL, and (after switching Storage to MySQL so results could be viewed in phpMyAdmin) DB_HOST/DB_PORT/DB_USER/DB_PASSWORD/DB_NAME are read by the application (orderintake/env.py). No credentials are committed; .env and .venv/ are gitignored, and .env has never been tracked or committed in git history (verified via `git log --all --diff-filter=A --name-only`)."
     }
   },
   "configuration_records": [
@@ -68,6 +68,17 @@
       "saved_path": "orderintake/ai/extractor.py",
       "version_or_commit": "committed in this repo",
       "used_during": "bin/process.py runtime calls",
+      "status": "used",
+      "redactions": []
+    },
+    {
+      "name": "Simulated model-call failure (R13/O12)",
+      "category": "application_models_and_parameters",
+      "purpose": "storage/responses/R13.json is deliberately invalid JSON (labeled as such in the file itself), so ClaudeClient.complete() raises on every run -- a reproducible, labeled demonstration of the 'model call failed' / unavailable-model path that does not depend on a real API outage or on ANTHROPIC_API_KEY. Not a real/cached/mock response.",
+      "original_path_or_scope": "storage/responses/R13.json",
+      "saved_path": "storage/responses/R13.json",
+      "version_or_commit": "committed in this repo",
+      "used_during": "bin/process.py / bin/check.py (case: R13 simulated model-call failure)",
       "status": "used",
       "redactions": []
     }

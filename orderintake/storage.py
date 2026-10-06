@@ -161,10 +161,17 @@ class Storage:
         self._conn.commit()
 
     def record_error(self, request_id: str, reason: str) -> None:
+        # request_id is the PRIMARY KEY, and a request that keeps failing is
+        # by design retried on every run (see has_outcome()) -- so the same
+        # request_id can fail more than once across runs. ON DUPLICATE KEY
+        # UPDATE keeps the latest reason/timestamp instead of crashing on a
+        # second failure for the same request.
+        now = _now()
         with self._conn.cursor() as cursor:
             cursor.execute(
-                "INSERT INTO processing_errors (request_id, reason, occurred_at) VALUES (%s, %s, %s)",
-                (request_id, reason, _now()),
+                """INSERT INTO processing_errors (request_id, reason, occurred_at) VALUES (%s, %s, %s)
+                   ON DUPLICATE KEY UPDATE reason = %s, occurred_at = %s""",
+                (request_id, reason, now, reason, now),
             )
         self._conn.commit()
 

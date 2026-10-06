@@ -62,7 +62,7 @@ response file under `storage/responses/` records whether it is
 
 ```
 data/catalog.json          the 3-item fictional catalog (from seed.json)
-data/requests/*.txt        12 email-style request files (4 from seed + 8 added)
+data/requests/*.txt        13 email-style request files (4 from seed + 9 added)
 data/requests.json         manifest mapping request id -> order_ref -> file
 
 orderintake/domain/              rules that are NEVER delegated to the model -- pure functions, no I/O
@@ -88,7 +88,7 @@ templates/index.html         operations queue (status filter, analytics)
 templates/order.html         order detail: original text, proposed lines, correction form, history
 static/style.css             shared styling
 
-checks/reference-cases.json  the 12 hand-verified cases (ground truth, independent of the app)
+checks/reference-cases.json  the 13 hand-verified cases (ground truth, independent of the app)
 tasks/orders/                 original starter-pack seed/domain/expected-results (untouched)
 ```
 
@@ -173,8 +173,9 @@ safe to share across threads.)
 - Model: `claude-haiku-4-5-20251001` (set via `CLAUDE_MODEL` in `.env` --
   `orderintake/ai/claude_client.py` has no hardcoded model). Haiku was chosen
   over Sonnet after estimating cost for this task: the model's job here is
-  narrow text segmentation, not complex reasoning, and the whole 11-request
-  batch costs a fraction of a cent either way, so the cheaper/faster tier
+  narrow text segmentation, not complex reasoning, and the whole batch
+  (R1-R12; R13 is a deliberate simulated failure that never reaches the
+  API) costs a fraction of a cent either way, so the cheaper/faster tier
   was preferred with no accuracy tradeoff observed in the check results.
 - Uses the official `anthropic` Python SDK (`client.messages.create(...)`),
   not a hand-rolled HTTP call.
@@ -183,7 +184,11 @@ safe to share across threads.)
   and explicitly forbids it from picking SKUs/prices (`orderintake/ai/extractor.py`).
 - Every call is cached to `storage/responses/{request_id}.json` with a
   `mode` field (`real`/`cached`/`mock`) so a reviewer can tell a replayed
-  response from a mock stub from a live call.
+  response from a mock stub from a live call. One file,
+  `storage/responses/R13.json`, is the exception: it's deliberately
+  **not** valid JSON at all, and says so in plain text -- a labeled
+  simulated failure, not a fourth mode. See "Simulated failure case" in
+  `ai-workflow/README.md`.
 - Invalid/unparseable model output does not crash the batch: the request
   is marked `needs_clarification` with the parse error recorded as the
   reason (see `OrderProcessor.process()`).
@@ -192,7 +197,7 @@ safe to share across threads.)
 
 `tasks/orders/` holds the **original, untouched** starter-pack files
 (`domain.md`, `seed.json`, `expected-seed-results.json`). `data/requests/`
-extends the 4 seed requests (R1-R4) to 12, keeping the original 4 verbatim
+extends the 4 seed requests (R1-R4) to 13, keeping the original 4 verbatim
 and adding:
 
 | id | order_ref | added to cover |
@@ -205,20 +210,22 @@ and adding:
 | R10 | O9 | second bulk-discount order, standalone (never mutated) |
 | R11 | O10 | dedicated order for the reviewer-correction demo -- deliberately kept separate from R10/O9, see "Minimum demonstration" below for why |
 | R12 | O11 | explicitly stated pack count ("a pack of 5 hubs") -- see "Ambiguities in the supplied rules" below |
+| R13 | O12 | DELIBERATE SIMULATED FAILURE, not a real request to resolve -- see "Simulated failure case" in `ai-workflow/README.md` |
 
 Generation method: handwritten, not scripted/random (no seed to record).
-Each one was picked to exercise exactly one domain.md rule; see
-`checks/reference-cases.json` for the hand-calculated expected result and
-the rule each case is checking.
+Each one was picked to exercise exactly one domain.md rule (R13 is the one
+exception -- it exercises the model-unavailable code path, not a
+domain.md rule); see `checks/reference-cases.json` for the hand-calculated
+expected result and the rule each case is checking.
 
-All added `order_ref`s (`O4`-`O11`) are new -- none collide with the
+All added `order_ref`s (`O4`-`O12`) are new -- none collide with the
 seed's `O1`-`O3`, so the supplied expected values in
 `expected-seed-results.json` apply unchanged to R1-R4; nothing needed
 recalculating.
 
 ## Minimum demonstration / check results
 
-Run `python bin/check.py` -- it currently reports **12/12 passed** against
+Run `python bin/check.py` -- it currently reports **13/13 passed** against
 `checks/reference-cases.json`:
 
 1. **R1** normal order -> matches hand-checked total (4000 cents).
@@ -240,12 +247,18 @@ Run `python bin/check.py` -- it currently reports **12/12 passed** against
 10. **R12 explicit pack count** ("a pack of 5 USB hubs") -> resolves to
     quantity 5, not flagged ambiguous, because the count is *stated*, not
     *inferred* -- see "Ambiguities in the supplied rules" below.
+11. **R13 simulated model-call failure** -> a deliberately invalid cached
+    response makes the model call raise; the request is marked `failed`,
+    logged to `processing_errors`, and visible on the dashboard's "Failed
+    to process" count -- **without** creating an `orders` row. See
+    "Simulated failure case" in `ai-workflow/README.md`.
 
-No failures to explain -- all 12 cases pass against hand-calculated
+No failures to explain -- all 13 cases pass against hand-calculated
 expectations that were computed independently of the application before
 it was run (see each case's `verified_by` field), using **real**
 `claude-haiku-4-5-20251001` responses (check `storage/responses/*.json`
-for `"mode": "real"`), not the `--mock` stand-in.
+for `"mode": "real"`) for every case except the one deliberate simulated
+failure (R13), not the `--mock` stand-in.
 
 ## Ambiguities in the supplied rules
 
@@ -294,7 +307,12 @@ this implementation had to decide on its own:
   order or a recorded duplicate), not merely because a `requests` row
   exists. This was a real bug caught while switching from `--mock` to the
   live API (see `ai-workflow/README.md`'s workflow example) and fixed
-  before submission, rather than left for the reviewer to hit.
+  before submission, rather than left for the reviewer to hit. A
+  side-effect of always retrying a never-resolved request is that the
+  *same* request can fail more than once across runs; adding `R13` (see
+  "Simulated failure case") surfaced exactly that as a second, separate
+  bug in `Storage.record_error()` -- also found and fixed, see
+  `ai-workflow/README.md`.
 - One optional enhancement was implemented: a readable model-proposal-vs-
   reviewer-correction table on the order detail page (field, old value,
   new value, order status before/after, total before/after), rather than
@@ -315,5 +333,7 @@ porting the working, already-verified implementation from an initial PHP
 version to this Python/Flask stack (mechanical port of already-proven
 logic, plus one new Flask-specific threading bug found and fixed during
 dashboard testing -- see `ai-workflow/README.md`). A later pass added a
-MySQL-backed `Storage` alternative and one more request (`R12`/`O11`)
-covering the explicit-pack-count ambiguity described above.
+MySQL-backed `Storage` alternative, one request (`R12`/`O11`) covering the
+explicit-pack-count ambiguity, and one labeled simulated-failure request
+(`R13`/`O12`) covering the model-unavailable path -- which surfaced and
+fixed a second `Storage` bug (see `ai-workflow/README.md`).

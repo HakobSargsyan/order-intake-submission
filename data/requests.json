@@ -10,5 +10,6 @@
   { "id": "R9", "order_ref": "O8", "file": "R9.txt", "note": "added: unknown product (no catalog match at all)" },
   { "id": "R10", "order_ref": "O9", "file": "R10.txt", "note": "added: second bulk-discount order" },
   { "id": "R11", "order_ref": "O10", "file": "R11.txt", "note": "added: dedicated order for the reviewer-correction demo, kept separate from R10/O9 so correcting it never invalidates R10's own static reference case" },
-  { "id": "R12", "order_ref": "O11", "file": "R12.txt", "note": "added: explicitly stated pack count ('a pack of 5 hubs') -- tests the gap between domain.md's 'do not infer box contents' and an EXPLICIT stated count, which is not the same thing" }
+  { "id": "R12", "order_ref": "O11", "file": "R12.txt", "note": "added: explicitly stated pack count ('a pack of 5 hubs') -- tests the gap between domain.md's 'do not infer box contents' and an EXPLICIT stated count, which is not the same thing" },
+  { "id": "R13", "order_ref": "O12", "file": "R13.txt", "note": "added: DELIBERATE SIMULATED FAILURE -- storage/responses/R13.json is intentionally invalid JSON (not a real/cached/mock response) so ClaudeClient.complete() raises on every run, deterministically exercising the 'model call failed' / unavailable-model path. See ai-workflow/README.md." }
 ]

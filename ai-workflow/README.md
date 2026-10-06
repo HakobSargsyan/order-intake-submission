@@ -114,6 +114,42 @@ responses, which were themselves replayed unchanged from the PHP run
 (same cache file format, same request text -> zero extra API calls spent
 on the rewrite itself).
 
+**A fifth bug, found later while adding the simulated-failure case below:**
+adding `R13` (a request whose cached response is deliberately invalid, to
+exercise the "model call failed" path on demand -- see "Simulated failure
+case") crashed `bin/process.py` on its *second* run with
+`pymysql.err.IntegrityError: Duplicate entry 'R13' for key
+'processing_errors.PRIMARY'`. Root cause: `Storage.record_error()` did a
+plain `INSERT`, but `request_id` is the table's primary key, and a request
+that keeps failing is *by design* retried on every run (`has_outcome()`
+only becomes true once a request produces a real order or duplicate) --
+so the exact same `request_id` legitimately fails more than once across
+runs, and the second `INSERT` collided with the first. This was invisible
+before because every earlier failure in this project was transient (fixed
+and retried successfully exactly once); a *permanently* failing request
+had never existed until this one. **Fix:** `record_error()` now does
+`INSERT ... ON DUPLICATE KEY UPDATE`, keeping the latest reason/timestamp
+instead of crashing -- verified stable by running `bin/process.py` three
+times in a row afterward.
+
+## Simulated failure case
+
+`checks/reference-cases.json`'s `R13` case and `storage/responses/R13.json`
+are a deliberate simulation, not a real bug or a real API outage:
+`R13.json`'s content is plain text, intentionally not valid JSON, and says
+so in the file itself. Reading it makes `ClaudeClient.complete()`'s
+`json.load()` raise, which `OrderProcessor.process()` catches via its
+existing broad `except Exception` and records as `status: "failed"` --
+deterministically, on every run, independent of whether a real
+`ANTHROPIC_API_KEY` is set. This exists because the brief asks for
+"simulated failures" to be labeled and distinguishable from real model
+calls: `R13` is labeled as such in `data/requests.json`'s note field, in
+this file, and in `checks/reference-cases.json`'s `verified_by` field --
+never presented as a real/cached/mock response. `bin/check.py`'s dedicated
+`"failed"` branch verifies it by checking `Storage.list_unresolved_errors()`
+and confirming no `orders` row was ever created for `O12` (a failure never
+produces a draft).
+
 ## Reproduce or replay
 
 ```bash

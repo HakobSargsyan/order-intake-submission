@@ -1,0 +1,11 @@
+SIMULATED FAILURE -- intentionally NOT valid JSON.
+
+This file is not a real, cached, or mock model response. It exists only so
+that ClaudeClient.complete()'s json.load() raises when reading it,
+deterministically exercising OrderProcessor.process()'s "model call failed"
+/ unavailable-model handling path -- without depending on a real API outage
+or touching ANTHROPIC_API_KEY.
+
+See: ai-workflow/README.md ("Simulated failure case"),
+checks/reference-cases.json (case "R13 simulated model-call failure"),
+data/requests.json (R13's note field).
