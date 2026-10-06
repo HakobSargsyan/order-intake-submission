@@ -182,7 +182,7 @@ safe to share across threads.)
 
 `tasks/orders/` holds the **original, untouched** starter-pack files
 (`domain.md`, `seed.json`, `expected-seed-results.json`). `data/requests/`
-extends the 4 seed requests (R1-R4) to 11, keeping the original 4 verbatim
+extends the 4 seed requests (R1-R4) to 12, keeping the original 4 verbatim
 and adding:
 
 | id | order_ref | added to cover |
@@ -200,6 +200,11 @@ Generation method: handwritten, not scripted/random (no seed to record).
 Each one was picked to exercise exactly one domain.md rule; see
 `checks/reference-cases.json` for the hand-calculated expected result and
 the rule each case is checking.
+
+All added `order_ref`s (`O4`-`O11`) are new -- none collide with the
+seed's `O1`-`O3`, so the supplied expected values in
+`expected-seed-results.json` apply unchanged to R1-R4; nothing needed
+recalculating.
 
 ## Minimum demonstration / check results
 

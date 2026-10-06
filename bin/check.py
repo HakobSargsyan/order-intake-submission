@@ -64,12 +64,17 @@ def main() -> int:
                 failed += 1
                 continue
 
+        mode = order.get("extraction_mode", "?") if order else "?"
+
         if case.get("expected_status") == "duplicate":
             duplicates = storage.list_duplicates()
             found = any(d["request_id"] == case["request_id"] for d in duplicates)
             ok = found and order is not None and order["source_request_id"] != case["request_id"]
-            rows.append((case["case"], "PASS" if ok else "FAIL",
-                         "duplicate recorded, no second draft" if ok else "duplicate NOT recorded correctly"))
+            detail = (
+                f"duplicate recorded, no second draft (source order mode={mode})" if ok
+                else "duplicate NOT recorded correctly"
+            )
+            rows.append((case["case"], "PASS" if ok else "FAIL", detail))
             passed += ok
             failed += not ok
             continue
@@ -79,11 +84,11 @@ def main() -> int:
         ok = status_ok and total_ok
 
         if ok:
-            detail = f"status={order['status']} total={order['total_cents']!r}"
+            detail = f"status={order['status']} total={order['total_cents']!r} (mode={mode})"
         else:
             detail = (
                 f"expected status={case['expected_status']} total={case['expected_total_cents']!r} "
-                f"| got status={order['status']} total={order.get('total_cents')!r}"
+                f"| got status={order['status']} total={order.get('total_cents')!r} (mode={mode})"
             )
 
         rows.append((case["case"], "PASS" if ok else "FAIL", detail))
