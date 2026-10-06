@@ -15,6 +15,7 @@ import sys
 APP_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, APP_ROOT)
 
+from orderintake import env  # noqa: E402
 from orderintake.ai.claude_client import ClaudeClient  # noqa: E402
 from orderintake.ai.extractor import Extractor  # noqa: E402
 from orderintake.domain.catalog import Catalog  # noqa: E402
@@ -23,10 +24,17 @@ from orderintake.storage import Storage  # noqa: E402
 
 
 def main() -> int:
+    env.load(os.path.join(APP_ROOT, ".env"))
     catalog = Catalog(os.path.join(APP_ROOT, "data", "catalog.json"))
     client = ClaudeClient("", "n/a", os.path.join(APP_ROOT, "storage", "responses"))
     extractor = Extractor(client)
-    storage = Storage(os.path.join(APP_ROOT, "storage", "app.sqlite"))
+    storage = Storage(
+        host=env.get("DB_HOST", "127.0.0.1"),
+        port=int(env.get("DB_PORT", "3306")),
+        user=env.get("DB_USER", "root"),
+        password=env.get("DB_PASSWORD", ""),
+        database=env.get("DB_NAME", "order_intake"),
+    )
     processor = OrderProcessor(catalog, extractor, storage)
 
     with open(os.path.join(APP_ROOT, "checks", "reference-cases.json"), encoding="utf-8") as f:

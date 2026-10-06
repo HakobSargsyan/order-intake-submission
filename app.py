@@ -28,11 +28,17 @@ extractor = Extractor(client)
 
 
 def get_storage() -> Storage:
-    # A fresh sqlite3 connection per request, NOT one shared global
+    # A fresh MySQL connection per request, NOT one shared global
     # connection: Flask's dev server (and any real WSGI server) can
-    # dispatch requests on different threads, and sqlite3 connections are
+    # dispatch requests on different threads, and DB-API connections are
     # not safe to share across threads by default.
-    return Storage(os.path.join(APP_ROOT, "storage", "app.sqlite"))
+    return Storage(
+        host=env.get("DB_HOST", "127.0.0.1"),
+        port=int(env.get("DB_PORT", "3306")),
+        user=env.get("DB_USER", "root"),
+        password=env.get("DB_PASSWORD", ""),
+        database=env.get("DB_NAME", "order_intake"),
+    )
 
 
 def money(cents: int | None) -> str:
