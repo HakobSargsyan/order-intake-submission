@@ -4,7 +4,7 @@ Junior AI Engineer take-home, **Alternative A** (`tasks/orders/`). Turns short
 email-style customer order requests into validated draft orders, with a
 review queue for anything ambiguous, unknown, or duplicate.
 
-Python + Flask + SQLite, using the official `anthropic` SDK for the real
+Python + Flask + MySQL, using the official `anthropic` SDK for the real
 model integration.
 
 ## Quick start
@@ -62,7 +62,7 @@ response file under `storage/responses/` records whether it is
 
 ```
 data/catalog.json          the 3-item fictional catalog (from seed.json)
-data/requests/*.txt        11 email-style request files (4 from seed + 7 added)
+data/requests/*.txt        12 email-style request files (4 from seed + 8 added)
 data/requests.json         manifest mapping request id -> order_ref -> file
 
 orderintake/domain/              rules that are NEVER delegated to the model -- pure functions, no I/O
@@ -76,7 +76,7 @@ orderintake/ai/claude_client.py      real/cached/mock Anthropic API call (offici
 orderintake/ai/mock_extraction.py    deterministic local stand-in for --mock, never used for real checks
 
 orderintake/order_processor.py   orchestrator -- the only module that imports from BOTH domain/ and ai/
-orderintake/storage.py           SQLite persistence (requests, orders, duplicates, corrections, errors)
+orderintake/storage.py           MySQL persistence (requests, orders, duplicates, corrections, errors)
 orderintake/env.py               minimal .env loader (no extra dependency for two variables)
 
 bin/process.py              CLI: process every request in data/requests.json
@@ -88,7 +88,7 @@ templates/index.html         operations queue (status filter, analytics)
 templates/order.html         order detail: original text, proposed lines, correction form, history
 static/style.css             shared styling
 
-checks/reference-cases.json  the 11 hand-verified cases (ground truth, independent of the app)
+checks/reference-cases.json  the 12 hand-verified cases (ground truth, independent of the app)
 tasks/orders/                 original starter-pack seed/domain/expected-results (untouched)
 ```
 
@@ -154,6 +154,9 @@ different threads. Fixed by opening a fresh `Storage` (and thus a fresh
 sqlite3 connection) per request instead of one shared at module load time.
 Caught immediately by actually curling the running dashboard rather than
 just eyeballing the code -- see `ai-workflow/README.md` for the full story.
+(`Storage` is MySQL-backed now, but `get_storage()` still opens a fresh
+connection per request for the same reason: DB-API connections aren't
+safe to share across threads.)
 
 ## Real model integration
 
@@ -191,6 +194,7 @@ and adding:
 | R9 | O8 | unknown product, no catalog resemblance at all |
 | R10 | O9 | second bulk-discount order, standalone (never mutated) |
 | R11 | O10 | dedicated order for the reviewer-correction demo -- deliberately kept separate from R10/O9, see "Minimum demonstration" below for why |
+| R12 | O11 | explicitly stated pack count ("a pack of 5 hubs") -- see "Ambiguities in the supplied rules" below |
 
 Generation method: handwritten, not scripted/random (no seed to record).
 Each one was picked to exercise exactly one domain.md rule; see
@@ -199,7 +203,7 @@ the rule each case is checking.
 
 ## Minimum demonstration / check results
 
-Run `python bin/check.py` -- it currently reports **11/11 passed** against
+Run `python bin/check.py` -- it currently reports **12/12 passed** against
 `checks/reference-cases.json`:
 
 1. **R1** normal order -> matches hand-checked total (4000 cents).
@@ -213,17 +217,43 @@ Run `python bin/check.py` -- it currently reports **11/11 passed** against
 8. **R8** quantity ambiguous despite a resolved product -> flagged, not guessed.
 9. **Reviewer correction on O10/R11** (qty 12 -> 15): saved proposal changes,
    validation + discount rerun (21600 -> 27000 cents), and the result is
-   read back from SQLite by a separate process invocation (i.e. survives
-   a restart). O10 is used **only** for this correction -- not asserted as
-   its own static "before" case -- precisely so that re-running
-   `bin/check.py` repeatedly stays green forever (see the bug writeup in
-   `ai-workflow/README.md`).
+   read back from the database by a separate process invocation (i.e.
+   survives a restart). O10 is used **only** for this correction -- not
+   asserted as its own static "before" case -- precisely so that
+   re-running `bin/check.py` repeatedly stays green forever (see the bug
+   writeup in `ai-workflow/README.md`).
+10. **R12 explicit pack count** ("a pack of 5 USB hubs") -> resolves to
+    quantity 5, not flagged ambiguous, because the count is *stated*, not
+    *inferred* -- see "Ambiguities in the supplied rules" below.
 
-No failures to explain -- all 11 cases pass against hand-calculated
+No failures to explain -- all 12 cases pass against hand-calculated
 expectations that were computed independently of the application before
 it was run (see each case's `verified_by` field), using **real**
 `claude-haiku-4-5-20251001` responses (check `storage/responses/*.json`
 for `"mode": "real"`), not the `--mock` stand-in.
+
+## Ambiguities in the supplied rules
+
+`domain.md` is the source of truth, but it leaves two things unresolved that
+this implementation had to decide on its own:
+
+- **What counts as an "unambiguous catalog description" (rule 3)?** The rule
+  says to match by SKU or an unambiguous description, but doesn't define what
+  makes a description unambiguous. This implementation's answer is a hand-written
+  keyword rule in `Catalog.match()` (`domain/catalog.py`): a length marker
+  ("1m"/"2m") plus "cable", or the word "hub", counts as unambiguous; a bare
+  "cable" with no length marker matches two catalog items and is therefore
+  ambiguous. This is a judgment call, not something `domain.md` spells out.
+- **A stated pack/box count vs. an inferred one (rule 1).** Rule 1 says "do not
+  infer how many items a box contains" -- but is silent on a request that
+  states the count explicitly alongside the container word, e.g. "a pack of 5
+  USB hubs". Inferring would mean guessing a number nowhere in the text (e.g.
+  assuming "a box" always means 10); here the customer already gave the
+  number, so withholding it would be *overcautious*, not careful. This
+  implementation treats an explicitly stated count as resolved regardless of
+  the container word used -- see request `R12`/order `O11` in
+  `checks/reference-cases.json`, verified against a real
+  `claude-haiku-4-5-20251001` response.
 
 ## Known ambiguities / limitations
 
@@ -261,11 +291,14 @@ for `"mode": "real"`), not the `--mock` stand-in.
 ## Time spent
 
 Approximately 5-5.5 hours total: ~30 min reading `domain.md` and planning
-the model/code split, ~1.5 hours initial implementation, ~1 hour end-to-end
-testing against `--mock` and then the real API (found and fixed a
-retry/idempotency bug and a check-script coupling bug), ~45 min
-documentation, plus ~1.5-2 hours porting the working, already-verified
-implementation from an initial PHP version to this Python/Flask stack
-(mechanical port of already-proven logic, plus one new Flask-specific
-threading bug found and fixed during dashboard testing -- see
-`ai-workflow/README.md`).
+the model/code split (this included writing the 7 added request files --
+within the brief's 30-60 min guidance for extending the seed requests),
+~1.5 hours initial implementation, ~1 hour end-to-end testing against
+`--mock` and then the real API (found and fixed a retry/idempotency bug
+and a check-script coupling bug), ~45 min documentation, plus ~1.5-2 hours
+porting the working, already-verified implementation from an initial PHP
+version to this Python/Flask stack (mechanical port of already-proven
+logic, plus one new Flask-specific threading bug found and fixed during
+dashboard testing -- see `ai-workflow/README.md`). A later pass added a
+MySQL-backed `Storage` alternative and one more request (`R12`/`O11`)
+covering the explicit-pack-count ambiguity described above.

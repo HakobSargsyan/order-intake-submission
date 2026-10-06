@@ -86,5 +86,13 @@
     "expected_status": "draft",
     "expected_total_cents": 27000,
     "verified_by": "O10/R11 ('Please send 12 CAB-1 cables...') is deliberately NOT asserted as its own standalone case -- it exists only to host this correction, so this is its single, final-state assertion and reruns of this script stay stable forever. Pre-correction (uncorrected) hand calc: CAB-1 unit 2000 x 12 = 24000 subtotal, 10% discount 2400, total 21600. Post-correction hand calc: unit 2000 x 15 = 30000 subtotal, 10% discount 3000, total 30000 - 3000 = 27000. Must remain visible after an app restart."
+  },
+  {
+    "case": "R12 explicitly stated pack count ('a pack of 5 hubs')",
+    "request_id": "R12",
+    "order_ref": "O11",
+    "expected_status": "draft",
+    "expected_total_cents": 25000,
+    "verified_by": "domain.md rule 1 says 'do not infer how many items a box contains', but does not address a count stated EXPLICITLY alongside the container word -- '5' here is stated, not inferred, so it must resolve rather than be flagged ambiguous. Hand calc: HUB-1 unit 5000 x 5 = 25000, qty < 10 so no discount. Confirmed against a real claude-haiku-4-5-20251001 response (storage/responses/R12.json, quantity_value=5, quantity_ambiguous=false)."
   }
 ]
