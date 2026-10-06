@@ -92,6 +92,12 @@ checks/reference-cases.json  the 11 hand-verified cases (ground truth, independe
 tasks/orders/                 original starter-pack seed/domain/expected-results (untouched)
 ```
 
+The `domain/` vs `ai/` package split isn't cosmetic -- it's the same line this
+project draws everywhere else: `domain/` never imports `anthropic` or talks to
+the network, and `ai/` never decides a SKU or a price. `order_processor.py` is
+the one place allowed to import from both, because orchestrating between them
+is its entire job. See "Who decides what" below for why that boundary exists.
+
 ### Who decides what (the important design choice)
 
 The model's **only** job is to segment a request's raw text into per-product
@@ -152,7 +158,7 @@ just eyeballing the code -- see `ai-workflow/README.md` for the full story.
 ## Real model integration
 
 - Model: `claude-haiku-4-5-20251001` (set via `CLAUDE_MODEL` in `.env` --
-  `orderintake/claude_client.py` has no hardcoded model). Haiku was chosen
+  `orderintake/ai/claude_client.py` has no hardcoded model). Haiku was chosen
   over Sonnet after estimating cost for this task: the model's job here is
   narrow text segmentation, not complex reasoning, and the whole 11-request
   batch costs a fraction of a cent either way, so the cheaper/faster tier
@@ -161,7 +167,7 @@ just eyeballing the code -- see `ai-workflow/README.md` for the full story.
   not a hand-rolled HTTP call.
 - System prompt instructs the model to return only
   `{"lines":[{"raw_excerpt","quantity_value","quantity_ambiguous","quantity_notes"}]}`
-  and explicitly forbids it from picking SKUs/prices (`orderintake/extractor.py`).
+  and explicitly forbids it from picking SKUs/prices (`orderintake/ai/extractor.py`).
 - Every call is cached to `storage/responses/{request_id}.json` with a
   `mode` field (`real`/`cached`/`mock`) so a reviewer can tell a replayed
   response from a mock stub from a live call.

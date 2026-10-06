@@ -13,7 +13,7 @@
   itself surfaced.
 - **Application-time model:** `claude-haiku-4-5-20251001` (configurable via
   `CLAUDE_MODEL` in `.env`), called via the official `anthropic` Python
-  SDK from `orderintake/claude_client.py`. `max_tokens=1024`, temperature
+  SDK from `orderintake/ai/claude_client.py`. `max_tokens=1024`, temperature
   left at the API default. Chosen over Sonnet after estimating cost for
   this specific task (narrow text segmentation, not complex reasoning) --
   see README.md "Real model integration" for the reasoning.
@@ -22,7 +22,7 @@
 
 ## Configuration files
 
-- `orderintake/extractor.py` contains the only prompt that matters: the
+- `orderintake/ai/extractor.py` contains the only prompt that matters: the
   system prompt given to the application's own model calls. It is
   committed in full in source, not summarized here, since it's short and
   load-bearing.
@@ -59,13 +59,13 @@ time compared against the same independently hand-calculated
    have broken real-model validation too, not just the mock. **Fix:**
    negative lookbehind `(?<![A-Za-z]-)` excludes a digit directly
    preceded by `<letter>-` (a product-code pattern) -- ported as-is into
-   `orderintake/number_words.py`.
+   `orderintake/domain/number_words.py`.
 2. The catalog-description matcher used `cable`/`hub` without plural
    support, so it didn't match "cables"/"hubs" (no word boundary before
    the trailing "s"). This silently broke every description-only match,
    e.g. "two of the 2 meter USB-C cables" fell through to `unknown`.
    **Fix:** patterns changed to accept an optional trailing "s" -- ported
-   as-is into `orderintake/catalog.py`.
+   as-is into `orderintake/domain/catalog.py`.
 
 **What switching from `--mock` to the real API caught (PHP implementation,
 the more interesting one):** after setting a real `ANTHROPIC_API_KEY` and
@@ -132,7 +132,7 @@ Python CLI/script plus a minimal Flask app.
 
 A default Claude Code setup (no custom skills/hooks/agents) was enough for
 this exercise's scope -- the only thing worth preserving beyond the source
-code itself is the prompt in `extractor.py` and the worked debugging
+code itself is the prompt in `orderintake/ai/extractor.py` and the worked debugging
 examples above. I would not fabricate custom agents or hooks just to fill
 out this manifest; `not-used` is recorded accurately where nothing was
 used. Building the PHP version first and then porting it was a deliberate

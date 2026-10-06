@@ -14,8 +14,8 @@
     },
     "application_models_and_parameters": {
       "status": "used",
-      "files": ["orderintake/claude_client.py", "orderintake/extractor.py"],
-      "notes": "The APPLICATION itself (not the dev tool) calls Anthropic model claude-haiku-4-5-20251001 (configurable via CLAUDE_MODEL in .env) via the official `anthropic` Python SDK (client.messages.create), max_tokens=1024, temperature left at the API default (unset). System prompt is the SYSTEM_PROMPT constant in orderintake/extractor.py. Haiku was chosen over Sonnet after estimating cost for this narrow segmentation task -- see README.md."
+      "files": ["orderintake/ai/claude_client.py", "orderintake/ai/extractor.py"],
+      "notes": "The APPLICATION itself (not the dev tool) calls Anthropic model claude-haiku-4-5-20251001 (configurable via CLAUDE_MODEL in .env) via the official `anthropic` Python SDK (client.messages.create), max_tokens=1024, temperature left at the API default (unset). System prompt is the SYSTEM_PROMPT constant in orderintake/ai/extractor.py. Haiku was chosen over Sonnet after estimating cost for this narrow segmentation task -- see README.md."
     },
     "skills": {
       "status": "not-used",
@@ -34,7 +34,7 @@
     },
     "prompts_and_rules": {
       "status": "used",
-      "files": ["orderintake/extractor.py#SYSTEM_PROMPT"],
+      "files": ["orderintake/ai/extractor.py#SYSTEM_PROMPT"],
       "notes": "The only durable prompt artifact is the application's own extraction system prompt, committed in source. No separate Claude Code rule/instruction files were authored for this repo."
     },
     "tool_and_mcp_settings": {
@@ -64,8 +64,8 @@
       "name": "Order-extraction system prompt",
       "category": "application_models_and_parameters",
       "purpose": "Instructs the configured model to segment request text into product excerpts + quantity reading only, never to pick SKUs/prices",
-      "original_path_or_scope": "orderintake/extractor.py",
-      "saved_path": "orderintake/extractor.py",
+      "original_path_or_scope": "orderintake/ai/extractor.py",
+      "saved_path": "orderintake/ai/extractor.py",
       "version_or_commit": "committed in this repo",
       "used_during": "bin/process.py runtime calls",
       "status": "used",
