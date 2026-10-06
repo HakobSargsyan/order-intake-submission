@@ -1,5 +1,6 @@
 /.env
 /storage/app.sqlite
+/storage/export/
 /.idea/
 /.venv/
 __pycache__/

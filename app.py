@@ -2,15 +2,18 @@
 """Order intake review dashboard. Run with: python app.py"""
 from __future__ import annotations
 
+import csv
+import io
 import json
 import os
 
-from flask import Flask, redirect, render_template, request, url_for
+from flask import Flask, Response, redirect, render_template, request, url_for
 
 from orderintake import env
 from orderintake.ai.claude_client import ClaudeClient
 from orderintake.ai.extractor import Extractor
 from orderintake.domain.catalog import Catalog
+from orderintake.export import build_export_rows
 from orderintake.order_processor import OrderProcessor
 from orderintake.storage import Storage
 
@@ -64,6 +67,43 @@ def index():
         stats=stats,
         filter=status_filter,
         corrections_count=corrections_count,
+    )
+
+
+@app.route("/export")
+def export():
+    """Optional enhancement: download reviewed/ready draft orders as CSV
+    (default) or JSON. ?reviewed_only=1 limits to reviewer-confirmed
+    orders only. Row-building logic is shared with bin/export.py via
+    orderintake/export.py so the CLI and the dashboard never drift."""
+    storage = get_storage()
+    as_json = request.args.get("format") == "json"
+    reviewed_only = request.args.get("reviewed_only") == "1"
+
+    orders = storage.list_orders("draft")
+    corrections_count = {o["order_ref"]: len(storage.get_corrections(o["order_ref"])) for o in orders}
+    rows = build_export_rows(orders, corrections_count, reviewed_only=reviewed_only)
+
+    if as_json:
+        return Response(
+            json.dumps(rows, indent=2),
+            mimetype="application/json",
+            headers={"Content-Disposition": "attachment; filename=orders_export.json"},
+        )
+
+    fieldnames = list(rows[0].keys()) if rows else [
+        "order_ref", "source_request_id", "status", "reviewed",
+        "lines", "total_cents", "total_usd", "created_at", "updated_at",
+    ]
+    buffer = io.StringIO()
+    writer = csv.DictWriter(buffer, fieldnames=fieldnames)
+    writer.writeheader()
+    writer.writerows(rows)
+
+    return Response(
+        buffer.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment; filename=orders_export.csv"},
     )
 
 

@@ -82,9 +82,12 @@ orderintake/env.py               minimal .env loader (no extra dependency for tw
 bin/process.py              CLI: process every request in data/requests.json
 bin/check.py                 CLI: run checks/reference-cases.json against current DB state
 bin/reset.py                 CLI: wipe local storage for a clean re-run
+bin/export.py                 CLI: export reviewed/ready draft orders to CSV/JSON (optional enhancement)
 
-app.py                       Flask dashboard entrypoint
-templates/index.html         operations queue (status filter, analytics)
+orderintake/export.py            shared row-building logic for bin/export.py and app.py's /export route
+
+app.py                       Flask dashboard entrypoint (+ /export download route)
+templates/index.html         operations queue (status filter, analytics, export links)
 templates/order.html         order detail: original text, proposed lines, correction form, history
 static/style.css             shared styling
 
@@ -313,13 +316,22 @@ this implementation had to decide on its own:
   "Simulated failure case") surfaced exactly that as a second, separate
   bug in `Storage.record_error()` -- also found and fixed, see
   `ai-workflow/README.md`.
-- One optional enhancement was implemented: a readable model-proposal-vs-
-  reviewer-correction table on the order detail page (field, old value,
-  new value, order status before/after, total before/after), rather than
-  a raw correction-history dump. The other two optional items (an
-  additional request format such as an image attachment, and structured
-  export of reviewed orders) were not attempted; core flow and its
-  exceptions were prioritized first, per the brief's own guidance.
+- Two of the three optional enhancements were implemented:
+  - A readable model-proposal-vs-reviewer-correction table on the order
+    detail page (field, old value, new value, order status before/after,
+    total before/after), rather than a raw correction-history dump.
+  - Structured export of reviewed/ready draft orders -- `bin/export.py`
+    (CSV by default, `--json`, `--reviewed-only`) and the dashboard's
+    "Export" links (`/export`, `?format=json`, `?reviewed_only=1`), both
+    built on the same `orderintake/export.py` row-building function so
+    the CLI and the HTTP download never drift. One row per `draft` order,
+    each flagged `reviewed` (`yes`/`no`) using the same reviewer-confirmed
+    distinction as the dashboard's badges.
+  The third (an additional request format such as an image attachment)
+  was not attempted -- it's a materially bigger change (a vision-capable
+  model call path, touching request loading, the extractor, and the
+  manifest format), and core flow and its exceptions were prioritized
+  first, per the brief's own guidance.
 
 ## Time spent
 

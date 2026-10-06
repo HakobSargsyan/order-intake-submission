@@ -39,6 +39,11 @@
     <a href="{{ url_for('index', status='all') }}" class="{{ 'active' if filter == 'all' else '' }}">All</a>
     <a href="{{ url_for('index', status='draft') }}" class="{{ 'active' if filter == 'draft' else '' }}">Draft / ready</a>
     <a href="{{ url_for('index', status='needs_clarification') }}" class="{{ 'active' if filter == 'needs_clarification' else '' }}">Needs clarification</a>
+    <span style="margin-left:16px;color:#888">
+      Export: <a href="{{ url_for('export') }}">CSV</a>
+      &middot; <a href="{{ url_for('export', format='json') }}">JSON</a>
+      &middot; <a href="{{ url_for('export', reviewed_only='1') }}">CSV (reviewed only)</a>
+    </span>
   </div>
 
   <table>
