@@ -20,7 +20,7 @@ from datetime import datetime, timezone
 
 import anthropic
 
-from orderintake.mock_extraction import mock_respond
+from orderintake.ai.mock_extraction import mock_respond
 
 
 class ClaudeClient:

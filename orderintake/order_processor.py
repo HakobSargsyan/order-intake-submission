@@ -3,10 +3,10 @@ catalog match + quantity validation (code) -> price (code) -> persist.
 """
 from __future__ import annotations
 
-from orderintake.catalog import Catalog
-from orderintake.extractor import Extractor
-from orderintake.number_words import extract_stated_quantity
-from orderintake.pricing import line_total
+from orderintake.ai.extractor import Extractor
+from orderintake.domain.catalog import Catalog
+from orderintake.domain.number_words import extract_stated_quantity
+from orderintake.domain.pricing import line_total
 from orderintake.storage import Storage
 
 

@@ -49,7 +49,7 @@ raises a clear error naming the request instead of inventing a result.
 
 ### `--mock` mode
 
-`python bin/process.py --mock` uses `orderintake/mock_extraction.py`, a
+`python bin/process.py --mock` uses `orderintake/ai/mock_extraction.py`, a
 deterministic local stand-in for the model, instead of a real or cached
 response. It exists purely so the rest of the pipeline (catalog matching,
 pricing, dedup, persistence, dashboard, corrections) can be developed and
@@ -65,14 +65,19 @@ data/catalog.json          the 3-item fictional catalog (from seed.json)
 data/requests/*.txt        11 email-style request files (4 from seed + 7 added)
 data/requests.json         manifest mapping request id -> order_ref -> file
 
-orderintake/catalog.py          LOCAL, code-only product lookup (SKU or unambiguous description)
-orderintake/number_words.py     LOCAL, code-only quantity cross-check (digits + spelled numbers)
-orderintake/pricing.py          LOCAL pricing: 10% bulk discount at qty>=10, round-half-up
-orderintake/extractor.py        builds the model prompt, parses its JSON response
-orderintake/claude_client.py    real/cached/mock Anthropic API call (official `anthropic` SDK) + response cache
-orderintake/order_processor.py  orchestrates: dedupe -> extract -> match -> validate -> price -> save
-orderintake/storage.py          SQLite persistence (requests, orders, duplicates, corrections, errors)
-orderintake/env.py              minimal .env loader (no extra dependency for two variables)
+orderintake/domain/              rules that are NEVER delegated to the model -- pure functions, no I/O
+orderintake/domain/catalog.py        code-only product lookup (SKU or unambiguous description)
+orderintake/domain/number_words.py   code-only quantity cross-check (digits + spelled numbers)
+orderintake/domain/pricing.py        10% bulk discount at qty>=10, round-half-up
+
+orderintake/ai/                   everything that talks to (or stands in for) the model
+orderintake/ai/extractor.py          builds the model prompt, parses its JSON response
+orderintake/ai/claude_client.py      real/cached/mock Anthropic API call (official `anthropic` SDK) + response cache
+orderintake/ai/mock_extraction.py    deterministic local stand-in for --mock, never used for real checks
+
+orderintake/order_processor.py   orchestrator -- the only module that imports from BOTH domain/ and ai/
+orderintake/storage.py           SQLite persistence (requests, orders, duplicates, corrections, errors)
+orderintake/env.py               minimal .env loader (no extra dependency for two variables)
 
 bin/process.py              CLI: process every request in data/requests.json
 bin/check.py                 CLI: run checks/reference-cases.json against current DB state

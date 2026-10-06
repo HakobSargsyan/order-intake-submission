@@ -1,10 +1,10 @@
 {
   "mode": "real",
   "model": "claude-haiku-4-5-20251001",
-  "created_at": "2026-10-05T20:41:23.498527+00:00",
+  "created_at": "2026-10-06T08:32:53.438740+00:00",
   "text": "```json\n{\n  \"lines\": [\n    {\n      \"raw_excerpt\": \"two of the 2 meter USB-C cables\",\n      \"quantity_value\": 2,\n      \"quantity_ambiguous\": false,\n      \"quantity_notes\": null\n    }\n  ]\n}\n```",
   "raw_response": {
-    "id": "msg_011CfjjnEUJdAWWZTJUeLefV",
+    "id": "msg_011Cfkg364UrwKWajTPfzsXd",
     "container": null,
     "content": [
       {

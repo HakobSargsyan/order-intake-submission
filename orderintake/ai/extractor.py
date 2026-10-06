@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 import re
 
-from orderintake.claude_client import ClaudeClient
+from orderintake.ai.claude_client import ClaudeClient
 
 SYSTEM_PROMPT = """\
 You segment a short customer order email into one entry per distinct

@@ -8,9 +8,9 @@ import os
 from flask import Flask, redirect, render_template, request, url_for
 
 from orderintake import env
-from orderintake.catalog import Catalog
-from orderintake.claude_client import ClaudeClient
-from orderintake.extractor import Extractor
+from orderintake.ai.claude_client import ClaudeClient
+from orderintake.ai.extractor import Extractor
+from orderintake.domain.catalog import Catalog
 from orderintake.order_processor import OrderProcessor
 from orderintake.storage import Storage
 

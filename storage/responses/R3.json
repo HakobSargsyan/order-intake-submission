@@ -1,15 +1,15 @@
 {
   "mode": "real",
   "model": "claude-haiku-4-5-20251001",
-  "created_at": "2026-10-05T20:41:18.994871+00:00",
-  "text": "```json\n{\n  \"lines\": [\n    {\n      \"raw_excerpt\": \"two boxes of the usual cable\",\n      \"quantity_value\": null,\n      \"quantity_ambiguous\": true,\n      \"quantity_notes\": \"Customer specifies 'two boxes' but does not state how many individual items are in each box\"\n    }\n  ]\n}\n```",
+  "created_at": "2026-10-06T08:32:50.280134+00:00",
+  "text": "```json\n{\n  \"lines\": [\n    {\n      \"raw_excerpt\": \"two boxes of the usual cable\",\n      \"quantity_value\": null,\n      \"quantity_ambiguous\": true,\n      \"quantity_notes\": \"Quantity of individual items unknown; customer specifies 2 boxes but box contents are not stated\"\n    }\n  ]\n}\n```",
   "raw_response": {
-    "id": "msg_011CfjjmtNaAuBYYfEfaChoS",
+    "id": "msg_011Cfkg2qwvRbtG3Jf8sw4Fz",
     "container": null,
     "content": [
       {
         "citations": null,
-        "text": "```json\n{\n  \"lines\": [\n    {\n      \"raw_excerpt\": \"two boxes of the usual cable\",\n      \"quantity_value\": null,\n      \"quantity_ambiguous\": true,\n      \"quantity_notes\": \"Customer specifies 'two boxes' but does not state how many individual items are in each box\"\n    }\n  ]\n}\n```",
+        "text": "```json\n{\n  \"lines\": [\n    {\n      \"raw_excerpt\": \"two boxes of the usual cable\",\n      \"quantity_value\": null,\n      \"quantity_ambiguous\": true,\n      \"quantity_notes\": \"Quantity of individual items unknown; customer specifies 2 boxes but box contents are not stated\"\n    }\n  ]\n}\n```",
         "type": "text"
       }
     ],

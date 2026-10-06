@@ -9,9 +9,9 @@ APP_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, APP_ROOT)
 
 from orderintake import env  # noqa: E402
-from orderintake.catalog import Catalog  # noqa: E402
-from orderintake.claude_client import ClaudeClient  # noqa: E402
-from orderintake.extractor import Extractor  # noqa: E402
+from orderintake.ai.claude_client import ClaudeClient  # noqa: E402
+from orderintake.ai.extractor import Extractor  # noqa: E402
+from orderintake.domain.catalog import Catalog  # noqa: E402
 from orderintake.order_processor import OrderProcessor  # noqa: E402
 from orderintake.storage import Storage  # noqa: E402
 

@@ -1,15 +1,15 @@
 {
   "mode": "real",
   "model": "claude-haiku-4-5-20251001",
-  "created_at": "2026-10-05T20:41:22.470561+00:00",
-  "text": "```json\n{\n  \"lines\": [\n    {\n      \"raw_excerpt\": \"3 CAB-2 cables\",\n      \"quantity_value\": 3,\n      \"quantity_ambiguous\": false,\n      \"quantity_notes\": null\n    },\n    {\n      \"raw_excerpt\": \"1 USB hub\",\n      \"quantity_value\": 1,\n      \"quantity_ambiguous\": false,\n      \"quantity_notes\": null\n    }\n  ]\n}\n```",
+  "created_at": "2026-10-06T08:32:52.355198+00:00",
+  "text": "```json\n{\"lines\": [{\"raw_excerpt\": \"3 CAB-2 cables\", \"quantity_value\": 3, \"quantity_ambiguous\": false, \"quantity_notes\": null}, {\"raw_excerpt\": \"1 USB hub\", \"quantity_value\": 1, \"quantity_ambiguous\": false, \"quantity_notes\": null}]}\n```",
   "raw_response": {
-    "id": "msg_011Cfjjn49voJiCv6wC91SM7",
+    "id": "msg_011Cfkg31HkkoPypiVXPNYX9",
     "container": null,
     "content": [
       {
         "citations": null,
-        "text": "```json\n{\n  \"lines\": [\n    {\n      \"raw_excerpt\": \"3 CAB-2 cables\",\n      \"quantity_value\": 3,\n      \"quantity_ambiguous\": false,\n      \"quantity_notes\": null\n    },\n    {\n      \"raw_excerpt\": \"1 USB hub\",\n      \"quantity_value\": 1,\n      \"quantity_ambiguous\": false,\n      \"quantity_notes\": null\n    }\n  ]\n}\n```",
+        "text": "```json\n{\"lines\": [{\"raw_excerpt\": \"3 CAB-2 cables\", \"quantity_value\": 3, \"quantity_ambiguous\": false, \"quantity_notes\": null}, {\"raw_excerpt\": \"1 USB hub\", \"quantity_value\": 1, \"quantity_ambiguous\": false, \"quantity_notes\": null}]}\n```",
         "type": "text"
       }
     ],
@@ -29,7 +29,7 @@
       "cache_read_input_tokens": 0,
       "inference_geo": "not_available",
       "input_tokens": 299,
-      "output_tokens": 118,
+      "output_tokens": 85,
       "output_tokens_details": null,
       "server_tool_use": null,
       "service_tier": "standard"

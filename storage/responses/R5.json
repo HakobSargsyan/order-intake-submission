@@ -1,15 +1,15 @@
 {
   "mode": "real",
   "model": "claude-haiku-4-5-20251001",
-  "created_at": "2026-10-05T20:41:20.028589+00:00",
-  "text": "```json\n{\"lines\": [{\"raw_excerpt\": \"ten CAB-1 cables\", \"quantity_value\": 10, \"quantity_ambiguous\": false, \"quantity_notes\": null}]}\n```",
+  "created_at": "2026-10-06T08:32:51.216202+00:00",
+  "text": "```json\n{\n  \"lines\": [\n    {\n      \"raw_excerpt\": \"ten CAB-1 cables\",\n      \"quantity_value\": 10,\n      \"quantity_ambiguous\": false,\n      \"quantity_notes\": null\n    }\n  ]\n}\n```",
   "raw_response": {
-    "id": "msg_011CfjjmykXMeCnRTvmHoXJg",
+    "id": "msg_011Cfkg2wG9Yz54toZAgcPE8",
     "container": null,
     "content": [
       {
         "citations": null,
-        "text": "```json\n{\"lines\": [{\"raw_excerpt\": \"ten CAB-1 cables\", \"quantity_value\": 10, \"quantity_ambiguous\": false, \"quantity_notes\": null}]}\n```",
+        "text": "```json\n{\n  \"lines\": [\n    {\n      \"raw_excerpt\": \"ten CAB-1 cables\",\n      \"quantity_value\": 10,\n      \"quantity_ambiguous\": false,\n      \"quantity_notes\": null\n    }\n  ]\n}\n```",
         "type": "text"
       }
     ],
@@ -29,7 +29,7 @@
       "cache_read_input_tokens": 0,
       "inference_geo": "not_available",
       "input_tokens": 293,
-      "output_tokens": 50,
+      "output_tokens": 70,
       "output_tokens_details": null,
       "server_tool_use": null,
       "service_tier": "standard"

@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 import re
 
-from orderintake.number_words import extract_stated_quantity
+from orderintake.domain.number_words import extract_stated_quantity
 
 _REQUEST_TEXT_RE = re.compile(r'REQUEST TEXT:\s*"""(.*)"""', re.DOTALL)
 _KEYWORD_RE = re.compile(r"\bone\b|\btwo\b|\bthree\b|\bfour\b|box|cable|hub|mice|adapter", re.IGNORECASE)
