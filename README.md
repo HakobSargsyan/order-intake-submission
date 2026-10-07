@@ -4,7 +4,7 @@ Junior AI Engineer take-home, **Alternative A** (`tasks/orders/`). Turns short
 email-style customer order requests into validated draft orders, with a
 review queue for anything ambiguous, unknown, or duplicate.
 
-Python + Flask + MySQL, using the official `anthropic` SDK for the real
+Python + Flask + SQLite, using the official `anthropic` SDK for the real
 model integration.
 
 A brief walkthrough of the approach and findings (`PRESENTATION.pptx`, 8
@@ -83,7 +83,7 @@ orderintake/ai/claude_client.py      real/cached/mock Anthropic API call (offici
 orderintake/ai/mock_extraction.py    deterministic local stand-in for --mock, never used for real checks
 
 orderintake/order_processor.py   orchestrator -- the only module that imports from BOTH domain/ and ai/
-orderintake/storage.py           MySQL persistence (requests, orders, duplicates, corrections, errors)
+orderintake/storage.py           SQLite persistence (requests, orders, duplicates, corrections, errors)
 orderintake/env.py               minimal .env loader (no extra dependency for two variables)
 
 bin/process.py              CLI: process every request in data/requests.json
@@ -174,9 +174,6 @@ different threads. Fixed by opening a fresh `Storage` (and thus a fresh
 sqlite3 connection) per request instead of one shared at module load time.
 Caught immediately by actually curling the running dashboard rather than
 just eyeballing the code -- see `ai-workflow/README.md` for the full story.
-(`Storage` is MySQL-backed now, but `get_storage()` still opens a fresh
-connection per request for the same reason: DB-API connections aren't
-safe to share across threads.)
 
 ## Real model integration
 
@@ -351,8 +348,11 @@ and a check-script coupling bug), ~45 min documentation, plus ~1.5-2 hours
 porting the working, already-verified implementation from an initial PHP
 version to this Python/Flask stack (mechanical port of already-proven
 logic, plus one new Flask-specific threading bug found and fixed during
-dashboard testing -- see `ai-workflow/README.md`). A later pass added a
-MySQL-backed `Storage` alternative, one request (`R12`/`O11`) covering the
-explicit-pack-count ambiguity, and one labeled simulated-failure request
-(`R13`/`O12`) covering the model-unavailable path -- which surfaced and
-fixed a second `Storage` bug (see `ai-workflow/README.md`).
+dashboard testing -- see `ai-workflow/README.md`). A later pass added one
+request (`R12`/`O11`) covering the explicit-pack-count ambiguity and one
+labeled simulated-failure request (`R13`/`O12`) covering the
+model-unavailable path -- which surfaced and fixed a second `Storage` bug
+(see `ai-workflow/README.md`). `Storage` was briefly swapped to a
+MySQL-backed implementation (to inspect results in phpMyAdmin locally)
+and then reverted to SQLite so the project has no external database
+dependency for `pip install && run` or for free-tier deployment.

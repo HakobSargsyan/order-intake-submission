@@ -21,13 +21,7 @@ from orderintake.storage import Storage  # noqa: E402
 
 def main() -> None:
     env.load(os.path.join(APP_ROOT, ".env"))
-    storage = Storage(
-        host=env.get("DB_HOST", "127.0.0.1"),
-        port=int(env.get("DB_PORT", "3306")),
-        user=env.get("DB_USER", "root"),
-        password=env.get("DB_PASSWORD", ""),
-        database=env.get("DB_NAME", "order_intake"),
-    )
+    storage = Storage(os.path.join(APP_ROOT, "storage", "app.sqlite"))
 
     as_json = "--json" in sys.argv
     reviewed_only = "--reviewed-only" in sys.argv

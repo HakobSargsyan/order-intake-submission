@@ -28,13 +28,7 @@ def main() -> int:
     catalog = Catalog(os.path.join(APP_ROOT, "data", "catalog.json"))
     client = ClaudeClient("", "n/a", os.path.join(APP_ROOT, "storage", "responses"))
     extractor = Extractor(client)
-    storage = Storage(
-        host=env.get("DB_HOST", "127.0.0.1"),
-        port=int(env.get("DB_PORT", "3306")),
-        user=env.get("DB_USER", "root"),
-        password=env.get("DB_PASSWORD", ""),
-        database=env.get("DB_NAME", "order_intake"),
-    )
+    storage = Storage(os.path.join(APP_ROOT, "storage", "app.sqlite"))
     processor = OrderProcessor(catalog, extractor, storage)
 
     with open(os.path.join(APP_ROOT, "checks", "reference-cases.json"), encoding="utf-8") as f:
