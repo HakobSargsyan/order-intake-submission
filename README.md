@@ -7,6 +7,12 @@ review queue for anything ambiguous, unknown, or duplicate.
 Python + Flask + SQLite, using the official `anthropic` SDK for the real
 model integration.
 
+**Live demo**: https://order-intake-submission.onrender.com/ -- a
+convenience on top of the submission, not required scope (the app runs
+equally well locally with no account anywhere, see "Quick start" below).
+Hosting details and known limitations of the live instance are provided
+separately, not committed to this repository.
+
 A brief walkthrough of the approach and findings (`PRESENTATION.pptx`, 8
 slides: the model/code split, the `domain/`/`ai/` architecture, the four
 assessed pillars -- validation, ambiguity, duplicates, corrections -- with
